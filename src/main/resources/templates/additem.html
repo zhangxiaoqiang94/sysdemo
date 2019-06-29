@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>additem</title>
+
+        </head>
+<body>
+
+    <select id="select1">
+        <!--<option id="t" name="k">选择类型</option>-->
+        <option id="phone" name="sj">手机</option>
+        <option id="computer" name="dn">电脑</option>
+    </select>
+    <select id="select2"></select>
+
+    <form action="" method="post" id="form_up" enctype="multipart/form-data">
+        <div>
+            <div>商品名称：<input type="text" id="itemname" /> </div>
+            <div>商品价格：<input type="text" id="itemprice" /> </div>
+            <div>添加数量：<input type="text" id="itemnum"/></div>
+            <div>上传图片：
+                <input type="file" id="itempImg" />
+                <input type="button" id="tj_btn" value="图片上传"/>
+            </div>
+
+            <div><input type="hidden" id="imgurl" name="imgurl" imgurl=""/></div>
+            <button type="button" id="upload_btn">提交数据</button>
+        </div>
+    </form>
+
+</body>
+<script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
+<script type="text/javascript">
+    $(function (){
+       $("#form_up").on("click","#tj_btn",setImg)
+           .on("click","#upload_btn",upload);
+        selectChool();
+    })
+    //图片上传判断并返回 保存路径
+    function setImg() {
+        var fileValue=$("#itempImg")[0].files[0];
+        console.log("fileValue",fileValue)
+       // var data={"file":fileValue}
+        var  data=new FormData;
+        data.append("file",fileValue);
+        console.log("file ::",data);
+        $.ajax({
+            url:"/file/upload",
+            data:data,
+            type:"post",
+            processData: false,
+            contentType: false,
+            dataType:"json",
+            success:function (result) {
+                console.log("result ",result);
+                if(result.status==200){
+                  //  alert("商品添加成功");
+                    var imgpath=result.data;
+                    console.log("返回图片路径",imgpath)
+                    setImgUrl(imgpath);
+                    alert("图片添加成功");
+                }else {
+                    alert("图片添加失败");
+                    return false;
+                }
+            }
+        })
+    }
+            //给隐藏input赋值 imgurl
+            function setImgUrl(url) {
+               $("#imgurl").attr("imgurl",url);
+             var value=   $("#imgurl").attr("imgurl");
+             console.log("图片路径",value)
+            }
+         //提交到数据库 保存数据
+    function upload() {
+        debugger
+        var itemName=$("#itemname").val();
+        var price=$("#itemprice").val();
+        var num=$("#itemnum").val();
+        var itemImgUrl=$("#imgurl").attr("imgurl");
+        if(!itemImgUrl){
+            alert("还没有上传图片")
+            return;
+        }
+        var data={
+            "title":itemName,
+            "price":price,
+            "num":num,
+            "image":itemImgUrl
+        };
+        var url="/item/save";
+        console.log("入库请求参数",data);
+        $.post(url,data,function (result) {
+            if(result.status==200){
+                console.log("itemResult",result)
+                alert(result.mgs);
+            }else {
+                alert(result.mgs)
+                result;
+            }
+        })
+    }
+    function selectChool() {
+        var select=$("#select1").change(function () {
+          var op= $("option").selectedIndex;
+          console.log(op)
+         });
+    }
+
+
+</script>
+
+</html>

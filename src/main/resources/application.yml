@@ -1,0 +1,23 @@
+server:
+  port: 8001
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/jtdb?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true
+    username: root
+    password: root
+    type: com.alibaba.druid.pool.DruidDataSource
+  mvc:
+    view:
+      prefix: classpath:/webinfo/
+      suffix: .html
+#mybatis-plus
+mybatis-plus:
+  #别名包
+  type-aliases-package: com.example.sysdemo.pojo
+  #加载映射文件
+  mapper-locations: classpath:/mapper/*.xml
+  #驼峰映射
+  configuration:
+    map-underscore-to-camel-case: true
+

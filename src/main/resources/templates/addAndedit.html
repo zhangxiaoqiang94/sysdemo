@@ -1,0 +1,205 @@
+<div>
+<h3 class="page_title">xxx页面</h3>
+<select id="select1" onchange="bindchange()">
+    <!--<option id="t" name="k">选择类型</option>-->
+    <option id="chool" name="non">-请选择分类-</option>
+    <option id="phone" name="sj">手机</option>
+    <option id="computer" name="dn">电脑</option>
+</select>
+<select id="select2">
+
+</select>
+
+<form action="" method="post" id="form_up" enctype="multipart/form-data">
+    <div>
+        <div><input type="hidden" id="itemid" value=""/> </div>
+        <div>商品名称：<input type="text" id="itemname" /> </div>
+        <div>商品价格：<input type="text" id="itemprice" /> </div>
+        <div>添加数量：<input type="text" id="itemnum"/></div>
+        <!--图片的修改 回显  修改按钮的value-->
+        <img id="img1" src="" name="">
+        <div>上传图片：
+            <input type="file" id="itempImg" />
+            <input type="button" id="tj_btn" value="图片上传"/>
+        </div>
+
+        <div><input type="hidden" id="imgurl" name="imgurl" imgurl=""/></div>
+        <button type="button" id="upload_btn" style="display: block">提交数据</button>
+        <button type="button" id="update_btn" style="display: none">修改数据</button>
+    </div>
+</form>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        datahx();
+        $("#form_up").on("click","#tj_btn",setImg)
+            .on("click","#upload_btn",upload)
+            .on("click","#update_btn",upajax);
+      //  selectChool();
+    })
+    function datahx() {
+
+        var updata=$("#maincontext").data("dataup")
+        if(updata){
+          //  console.log("updata  ",updata)
+
+            $("#itemid").val(updata.id)
+            $("#itemname").val(updata.title)
+            $("#itemprice").val(updata.price)
+            $("#itemnum").val(updata.num)
+           /* var img= updata.image;
+            var imgName=img.substr(img.lastIndexOf("/")+1)*/
+           // console.log("name  ",imgName);
+            //修改button 的value
+            $("#tj_btn").prop("value","修改图片")
+
+
+            $("#upload_btn").attr("style","display:none")
+            $("#update_btn").attr("style","display:block")
+            //如果数据回显 为item的修改操作
+            var imgurl=updata.image;
+            console.log("回显的url ",imgurl);
+            $("#img1").attr("src",imgurl);
+            //回显后 ajax发送请求 更改图片 返回路径   赋值给src属性  封装到一个value中  作为参数
+            setImg(imgurl);
+        }
+    }
+
+
+
+    function bindchange(){
+       // debugger
+            var se2=$("#select2")
+            var pName= $("#select1").find("option:selected").attr("name")
+         //   console.log("pName ",pName)
+            //移除原有option
+            se2.find("option").remove();
+            if(pName=='sj'){
+                var ops=phoneOption();
+                se2.append(ops)
+            }else if (pName=='dn'){
+               var cp= computerOption();
+               se2.append(cp);
+
+            }
+    }
+    //下拉框手机种类绑定
+    function phoneOption() {
+        var  op="<option name='sj'>华为</option>"+"<option name='sj'>小米</option>"+
+            "<option name='sj'>oppo</option>"+"<option name='sj'>vivo</option>"
+        return op;
+
+    }
+    function computerOption() {
+        var  op="<option name='dn'>苹果</option>"+"<option name='dn'>联想</option>"+"<option name='dn'>华为</option>"+"<option name='dn'>小米</option>"+
+            "<option name='dn'>dell</option>"
+        return op;
+    }
+
+    //图片上传判断并返回 保存路径
+    function setImg() {
+        var fileValue=$("#itempImg")[0].files[0];
+       // console.log("fileValue",fileValue)
+        // var data={"file":fileValue}
+        var  data=new FormData;
+        data.append("file",fileValue);
+        //console.log("file ::",data);
+        $.ajax({
+            url:"/file/upload",
+            data:data,
+            type:"post",
+            processData: false,
+            contentType: false,
+            dataType:"json",
+            success:function (result) {
+                console.log("result ",result);
+                if(result.status==200){
+                    //  alert("商品添加成功");
+                    var imgpath=result.data;
+                    console.log("返回图片路径",imgpath)
+                    setImgUrl(imgpath);
+                   alert("图片添加成功");
+                }else {
+                  //  alert("图片添加失败");
+                    return false;
+                }
+            }
+        })
+    }
+    //给隐藏input赋值 imgurl
+    function setImgUrl(url) {
+        $("#imgurl").attr("imgurl",url);
+        var value=   $("#imgurl").attr("imgurl");
+       // console.log("图片路径",value)
+    }
+    //提交到数据库 保存数据
+    function upload() {
+       // debugger
+        var itemName=$("#itemname").val();
+        var price=$("#itemprice").val();
+        var num=$("#itemnum").val();
+        var itemImgUrl=$("#imgurl").attr("imgurl");
+        if(!itemImgUrl){
+            alert("还没有上传图片")
+            return;
+        }
+        var data={
+            "title":itemName,
+            "price":price,
+            "num":num,
+            "image":itemImgUrl
+        };
+        var url="/item/save";
+       // console.log("入库请求参数",data);
+        $.post(url,data,function (result) {
+            if(result.status==200){
+                console.log("itemResult",result)
+                alert(result.mgs);
+            }else {
+                alert(result.mgs)
+                result;
+            }
+        })
+    }
+    /*function selectChool() {
+        var select=$("#select1").change(function () {
+            var op= $("option").selectedIndex;
+            console.log("op ",op)
+        });
+    }*/
+    
+    //实现update操作
+
+    function upajax() {
+
+        var id=$("#itemid").val();
+       // console.log("itemId  ",id)
+        var itemName=$("#itemname").val();
+        var price=$("#itemprice").val();
+        var num=$("#itemnum").val();
+        //var img=$("#img1").attr("src");
+        var img=$("#imgurl").attr("imgurl");
+      //  console.log("获取src的value",img);
+
+        //请求路径
+        var url="/item/update";
+        var data={"id":id,"title":itemName,"price":price,"num":num,"image":img}
+        $.get(url,data,function (result) {
+      //      console.log("updateresult" ,result)
+            if(result.status==200){
+                alert(result.mgs)
+                return;
+            }else {
+                alert(result.mgs)
+                return;
+            }
+        })
+    }
+    
+    
+    
+
+
+
+</script>

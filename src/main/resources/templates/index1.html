@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页index</title>
+    <style>
+        a{
+            color: black;
+            text-decoration: none;
+        }
+    </style>
+
+</head>
+<body>
+
+<!--<img src="//img11.360buyimg.com/mobilecms/s140x140_jfs/t1/80148/15/2402/133581/5d0b491cEd2f329b8/870c16fc272ccc91.png!q90.webp">-->
+
+  <div id="maincontext">
+    <div id="userd">
+        <table id="table1">
+            <thead class="">
+            <th>选择</th><th>用户名</th><th>用户创建时间</th>
+            </thead>
+        <tbody id="tbody">
+        <tr><td>数据正在加载中…………</td></tr>
+        </tbody>
+        </table>
+    </div>
+        <br/>
+    <!--第二个table 商品table -->
+        <h3>在售商品信息</h3>
+      <div id="btn">
+          <button type="button" id="item_insert" class="addItem">添加</button>
+          <button type="button" id="item_update" class="upItem">修改</button>
+      </div>
+        <br/>
+            <div id="item_id">
+            <table id="table2">
+            <thead>
+                <tr>
+                <th><input type="hidden"/></th>
+                <th>商品编号</th>
+                <th>商品名称</th>
+                <th>商品类别</th>
+                <th>商品发布人</th>
+                <!--<th>商品图片</th>-->
+                </tr>
+            </thead>
+            <tbody id="tbody2">
+                <tr><td>数据加载中…………</td></tr>
+            </tbody>
+        </table>
+            </div>
+  </div>
+
+</body>
+<script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //给修改按钮注册点击事件  加载页面
+        $("#btn").on("click","#item_insert,#item_update",updateUI);
+
+        findAllUser();
+        findAllItem();
+        binddata();
+       // updateUI();
+       /* $("#tbody2").on("click","#item_insert",function () {
+
+        })*/
+
+
+    })
+
+    //查找userALL
+    function findAllUser() {
+       // debugger
+        var url="/user/findAll";
+        $.get(url,function (result) {
+            if(result.data!=null){
+                var results=result.data;
+              //  console.log("查找用户返回信息",results)
+             //   alert("用户查找成功"+"results的长度"+results.length);
+                var tbody=$("#tbody");
+                //清空tbody的数据
+                     tbody.empty();
+                    //获取tbody 在tbody中创建表格
+                for(var i=0;i<results.length;i++){
+                //迭代信息遍历 创建多个tr
+                 var tr=$("<tr></tr>");
+                    //创建td
+                 var tds=createUser(results[i],i);
+                 //将td追加到dr
+                    tr.append(tds)
+                    tbody.append(tr)
+                }
+            }else {
+                alert("用户查找失败,有可能没有用户数据")
+            }
+        })
+    }
+    //用于显示商品  呈现在列表中
+    function findAllItem() {
+        var url="/item/findAll";
+        $.get(url,function (result) {
+            var res=result.data;
+            if(res!=null){
+             //   alert("商品查询条数为："+res.length);
+                console.log("返回的items  ",res);
+                var tbody2=$("#tbody2");
+                //清空列表信息
+                tbody2.empty();
+                for(var i=0;i<res.length;i++){
+                     var tr2= $("<tr></tr>");
+                     //创建user 的tds
+                     var tds2=creatItemTds(res[i],i);
+                    //td追加到tr
+                    tr2.append(tds2);
+                    //tr追加到tbody2中
+                    tbody2.append(tr2)
+                }
+            }else {
+                alert("商品查询失败")
+                return;
+            }
+        })
+    }
+    //创建item表格
+    function creatItemTds(result,id) {
+        console.log("imgurl ",result.img)
+        var ids2="<td><input type='radio' name='item' value='"+result.id+"'></td>"+
+            "<td>"+(id+1)+"</td>"+
+            "<td>"+result.title+"</td>"+
+            /*"<td>"+result.cid+"</td>"+*/
+            "<td>"+result.num+"</td>"+
+            "<td>"+result.price+"</td>"
+           /* +"<td><img src='"+result.image+"'></td>" */;
+        return ids2;
+    }
+
+    //创建user函数
+    function createUser(result,r) {
+        var ids="<td>"+(r+1)+"</td>"+"<td>"+result.username+"</td>"+"<td>"+result.created+"</td>"
+            return ids;
+    }
+   //给update   button 添加函数事件
+    function binddata() {
+        //获取被选中的input
+        var seId=$("input[type='radio']:checked").val();
+            console.log("radio  ",seId);
+    }
+    //加载 添加  修改  页面
+    function updateUI() {
+        //debugger
+        var title="";
+        var  url="/page/updateUI"
+       if($(this).hasClass("addItem")){
+           $("#maincontext").load(url,function () {
+               title="添加页面";
+               $(".page_title").html(title);
+           })
+       }else {
+           var itemId=$("input[type=radio]:checked").val();
+           console.log("被选中的  ID  ",itemId)
+           if(itemId){
+               //获取的inputId
+               var data={id:itemId}
+               var url="/item/findItemById"
+               $.get(url,data,function (result) {
+                   $("#maincontext").data("dataup",result.data);
+                   if(result.status==200){
+                       alert("数据查询成功")
+                       url="/page/updateUI";
+                       $("#maincontext").load(url,function (){
+                         title="修改页面";
+                           $(".page_title").html(title);
+                           console.log("查询后返回的数据",result);
+                     //  console.log("tntnt", $("#maincontext").data("dataup"))
+                       })
+                   }else {
+                       alert("数据查询失败");
+                       return;
+                   }
+               })
+           }else {
+               alert("请选择！！！")
+               return;
+           }
+       }
+    }
+</script>
+
+</html>
